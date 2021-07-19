@@ -1,17 +1,22 @@
-version: '2'
-services:
-  vulnerable_node:
-    restart: always
-    build: .
-    ports:
-      - "3000:3000"
-#    links:
-#      - postgres_db:postgres_db
-    depends_on:
-      - postgres_db
+version: '3'
 
-  postgres_db:
-    restart: always
-    build: ./services/postgresql
+services:
+  webgoat:
+    image: webgoat/webgoat-8.0
+    environment:
+      - WEBWOLF_HOST=webwolf
+      - WEBWOLF_PORT=9090
+      - TZ=Europe/Amsterdam
     ports:
-      - "5432:5432"
+      - "8080:8080"
+      - "9001:9001"
+    volumes:
+      - .:/home/webgoat/.webgoat
+    working_dir: /home/webgoat
+  webwolf:
+    image: webgoat/webwolf
+    ports:
+      - "9090:9090"
+    command: --spring.datasource.url=jdbc:hsqldb:hsql://webgoat:9001/webgoat --server.address=0.0.0.0
+    depends_on:
+            - webgoat
